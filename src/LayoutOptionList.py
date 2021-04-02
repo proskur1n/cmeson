@@ -76,17 +76,17 @@ class OptionList(urwid.ListBox):
 				self.set_focus(position)
 				return widget, position
 
-class LayoutOptionList(urwid.Pile):
+class LayoutOptionList(urwid.Pile):	
 	def __init__(self, options):
 		self.last_search_query = ''
 		self.option_list = OptionList(options)
-		footer = option_list_footer()
-		self.footer = urwid.WidgetPlaceholder(footer)
+		urwid.connect_signal(self.option_list.body, 'modified', self.update_description)
+		self.description = urwid.Text('')
+		self.footer = urwid.WidgetPlaceholder(option_list_footer())
 		super().__init__([
 			self.option_list,
 			(urwid.PACK, urwid.Divider()),
-			# TODO
-			# (urwid.PACK, description),
+			(urwid.PACK, urwid.AttrMap(self.description, 'description')),
 			(urwid.PACK, self.footer),
 		])
 	
@@ -118,3 +118,11 @@ class LayoutOptionList(urwid.Pile):
 		self.close_search_field()
 		self.option_list.find_next(query)
 		self.last_search_query = query
+	
+	def update_description(self):
+		focus = self.option_list.focus
+		text = ''
+		if focus:
+			widget = focus.original_widget
+			text = widget.description
+		self.description.set_text(text)

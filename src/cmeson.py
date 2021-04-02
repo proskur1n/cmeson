@@ -23,6 +23,7 @@ sourcedir = "seatd"
 
 palette = [
 	('selected', 'bold,standout', ''),
+	('description', 'bold,standout', ''),
 ]
 
 main_loop = urwid.MainLoop(None, palette)
