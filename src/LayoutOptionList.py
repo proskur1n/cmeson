@@ -1,56 +1,93 @@
 import urwid
+import itertools
 from OptionEdit import OptionEdit
-
-def option_list_footer():
-	items = [
-		"[enter] edit",
-		"[u] undo",
-		"[q] discard and quit",
-		"[c] configure",
-	]
-	return urwid.Text("   ".join(items))
 
 # TODO
 class Heading(urwid.Text):
 	def __init__(self, name):
 		super().__init__('----' + name.upper() + '-' * 80)
 
-def split_into_sections(widgets):
+class SearchField(urwid.Edit):
+	signals = ['cancel', 'search']
+
+	def keypress(self, size, key):
+		if key not in ('enter', 'esc'):
+			super().keypress(size, key)
+			return
+		if key == 'enter' and self.edit_text != '':
+			urwid.emit_signal(self, 'search', self.edit_text)
+			return
+		urwid.emit_signal(self, 'cancel')
+
+def option_list_footer():
+	items = [
+		'[enter] edit',
+		'[u] undo',
+		'[/] search',
+		'[q] discard and quit',
+		'[c] configure',
+	]
+	return urwid.Text('   '.join(items))
+
+def group_into_sections(widgets):
 	order = ['user', 'compiler', 'core', 'base', 'test', 'backend', 'directory']
+	widgets.sort(key=lambda x: order.index(x.section))
+	groups = itertools.groupby(widgets, lambda x: x.section)
 	items = []
-	for section in order:
-		matches = [x for x in widgets if x.section == section]
+	for section, matching in groups:
 		items.append(Heading(section))
-		items.extend(matches)
-	unknown = [x for x in widgets if x.section not in order]
-	if len(unknown):
-		items.append(Heading('unknown'))
-		items.extend(unknown)
+		items.extend(matching)
 	return items
 
 class OptionList(urwid.ListBox):
 	def __init__(self, options):
+		# TODO refactor
 		max_name_len = max([len(x['name']) for x in options])
 		items = [OptionEdit(max_name_len, x) for x in options]
-		sorted_items = split_into_sections(items)
-		walker = urwid.SimpleFocusListWalker(sorted_items)
+		items = group_into_sections(items)
+		items = [urwid.AttrMap(x, '', 'selected') for x in items]
+		walker = urwid.SimpleFocusListWalker(items)
 		super().__init__(walker)
 	
 	def change_focus(self, size, position, *args):
 		if self.focus:
-			self.focus.on_focus_lost()
+			self.focus.original_widget.on_focus_lost()
 		super().change_focus(size, position, *args)
+	
+	"""
+	Iterates over all selectable widgets, starting with the focused one if
+	`reverse == False` and the previous widget otherwise
+	"""
+	def build_options(self, reverse=False):
+		if len(self.body) == 0:
+			return
+		focus = self.focus_position or 0
+		positions = self.body.positions(reverse)
+		for pos in positions:
+			index = (focus + pos) % len(self.body)
+			widget = self.body[index].original_widget
+			if widget.selectable():
+				yield widget, index
+	
+	def find_next(self, query, reverse=False):
+		_, current = self.body.get_focus()
+		for widget, position in self.build_options(reverse):
+			if widget.name.find(query) >= 0 and position != current:
+				self.set_focus(position)
+				return widget, position
 
 class LayoutOptionList(urwid.Pile):
 	def __init__(self, options):
+		self.last_search_query = ''
 		self.option_list = OptionList(options)
 		footer = option_list_footer()
+		self.footer = urwid.WidgetPlaceholder(footer)
 		super().__init__([
 			self.option_list,
 			(urwid.PACK, urwid.Divider()),
 			# TODO
 			# (urwid.PACK, description),
-			(urwid.PACK, footer),
+			(urwid.PACK, self.footer),
 		])
 	
 	def keypress(self, size, key):
@@ -58,4 +95,26 @@ class LayoutOptionList(urwid.Pile):
 			return
 		if key == 'q':
 			raise urwid.ExitMainLoop()
+		if key == '/':
+			self.open_search_field()
+			return
+		if key in ('n', 'N'):
+			self.option_list.find_next(self.last_search_query, key == 'N')
+			return
 		return key
+	
+	def open_search_field(self):
+		sf = SearchField('search: ')
+		urwid.connect_signal(sf, 'cancel', self.close_search_field)
+		urwid.connect_signal(sf, 'search', self.perform_search)
+		self.footer.original_widget = sf
+		self.focus_position = len(self.contents) - 1
+	
+	def close_search_field(self):
+		self.footer.original_widget = option_list_footer()
+		self.focus_position = 0
+	
+	def perform_search(self, query):
+		self.close_search_field()
+		self.option_list.find_next(query)
+		self.last_search_query = query
