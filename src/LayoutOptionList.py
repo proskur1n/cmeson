@@ -2,10 +2,14 @@ import urwid
 import itertools
 from OptionEdit import OptionEdit
 
-# TODO
-class Heading(urwid.Text):
-	def __init__(self, name):
-		super().__init__('----' + name.upper() + '-' * 80)
+def heading(title, div_char=u'─'):
+	line = urwid.Divider(div_char)
+	text = urwid.Text(title.upper())
+	return urwid.Columns([
+		(12, line),
+		(urwid.PACK, text),
+		line,
+	], dividechars=1)
 
 class SearchField(urwid.Edit):
 	signals = ['cancel', 'search']
@@ -35,7 +39,7 @@ def group_into_sections(widgets):
 	groups = itertools.groupby(widgets, lambda x: x.section)
 	items = []
 	for section, matching in groups:
-		items.append(Heading(section))
+		items.append(heading(section))
 		items.extend(matching)
 	return items
 
