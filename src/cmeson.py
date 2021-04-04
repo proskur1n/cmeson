@@ -1,41 +1,130 @@
 import urwid
 import subprocess
 import json
-
+import getopt
+import sys
 from LayoutCommandOutput import LayoutCommandOutput
 from LayoutOptionList import LayoutOptionList
 
-def is_configured_project():
-	# TODO
-	return False
+usage = """\
+cmeson [OPTIONs] builddir -- [EXTRAs]
+cmeson [OPTIONs] builddir sourcedir [EXTRAs]
 
-def get_build_options():
-	if is_configured_project():
-		path = builddir
-	else:
-		path = sourcedir + "/meson.build"
-	cmd = ["meson", "introspect", path, "--buildoptions"]
-	json_str = subprocess.check_output(cmd)
-	return json.loads(json_str)
+cmeson is a TUI for meson build system. EXTRAs are passed as-is to 'meson setup'
+or 'meson configure' and OPTIONs can have the following values:
 
-builddir = "seatd/build"
-sourcedir = "seatd"
+  -h, --help           Show this message and exit
+  --backend BACKEND    Select backend to query build options for. See meson
+                       documentation for possible BACKEND values
+"""
 
-palette = [
-	('selected', 'bold,standout', ''),
-	('description', 'bold,standout', ''),
-]
+class ApplicationError(Exception):
+	pass
 
-main_loop = urwid.MainLoop(None, palette)
-# top = LayoutCommandOutput("ls -a wh0w3h0o".split(), main_loop)
-opts = get_build_options()
-top = LayoutOptionList(opts)
-main_loop.widget = top
-main_loop.run()
+class Application:
+	palette = [
+		('selected', 'bold,standout', ''),
+		('description', 'bold,standout', '')
+	]
 
-num = 0
-for widget, _ in top.option_list.build_options(True):
-	print(widget.name)
-	num = num + 1
-print(num)
-print(len(opts))
+	def __init__(self, argv):
+		self.parse_arguments(argv)
+		self.configured = self.is_configured_project()
+		layout = LayoutOptionList(self.get_build_options())
+		urwid.connect_signal(layout, 'configure', self.configure_meson)
+		self.layout_option_list = layout
+		self.main_loop = urwid.MainLoop(layout, self.palette, handle_mouse=False)
+		self.main_loop.run()
+	
+	def parse_arguments(self, argv):
+		try:
+			optlist, trailing = getopt.getopt(argv[1:], 'h', ['help', 'backend='])
+		except getopt.GetoptError as e:
+			raise ApplicationError(e)
+		
+		self.backend = None
+		for opt, arg in optlist:
+			if opt in ('-h', '--help'):
+				print(usage)
+				sys.exit()
+			if opt == '--backend':
+				self.backend = arg
+			else:
+				assert False, 'unhandled option'
+		
+		try:
+			self.builddir = trailing[0]
+		except IndexError:
+			raise ApplicationError('builddir not specified')
+
+		self.sourcedir = '.'
+		try:
+			if trailing[1] != '--':
+				self.sourcedir = trailing[1]
+			self.trailing = trailing[2:]
+		except IndexError:
+			self.trailing = trailing[1:]
+
+	"""
+	A hacky way to find out if we should run 'meson setup' or 'meson configure'
+	when configuring the project
+	"""
+	def is_configured_project(self):
+		cmd = ['meson', 'introspect', '--projectinfo', self.builddir]
+		return subprocess.call(
+			cmd,
+			stderr=subprocess.DEVNULL,
+			stdout=subprocess.DEVNULL) == 0
+
+	def get_build_options(self):
+		path = self.builddir if self.configured else self.sourcedir + '/meson.build'
+		cmd = ['meson', 'introspect', '--buildoptions']
+		cmd += ['--backend', self.backend] if self.backend else []
+		cmd += [path]
+
+		try:
+			json_str = subprocess.check_output(cmd)
+		except subprocess.CalledProcessError:
+			msg = 'meson returned non-zero exit code\n' + ' '.join(cmd)
+			raise ApplicationError(msg)
+		
+		return json.loads(json_str)
+
+	"""
+	dargument = -D argument
+
+	Returns list of darguments ['-Da=b', '-Dc=d', ...] for build options that
+	have changed and need to be reconfigured
+	"""
+	@staticmethod
+	def get_darguments(option_list):
+		widgets = map(lambda x: x[0], option_list.build_options())
+		changed = filter(lambda x: x.changed(), widgets)
+		dargs = []
+		for widget in changed:
+			darg = '-D{}={}'.format(widget.name, widget.get_value())
+			dargs.append(darg)
+		return dargs
+	
+	def configure_meson(self, option_list):
+		cmd = ['meson', 'configure' if self.configured else 'setup']
+		cmd += self.trailing
+		cmd += ['--backend', self.backend] if self.backend else []
+		cmd += self.get_darguments(option_list)
+		cmd += [self.builddir]
+		cmd += [] if self.configured else [self.sourcedir]
+		
+		layout = LayoutCommandOutput(cmd, self.main_loop)
+		urwid.connect_signal(layout, 'back', self.back_to_option_list)
+		self.main_loop.widget = layout
+	
+	def back_to_option_list(self, terminal):
+		if terminal.successful():
+			self.configured = True
+		self.main_loop.widget = self.layout_option_list
+
+if __name__ == '__main__':
+	try:
+		app = Application(sys.argv)
+	except ApplicationError as e:
+		sys.exit('cmeson: ' + str(e))

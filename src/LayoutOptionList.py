@@ -49,10 +49,11 @@ class OptionList(urwid.ListBox):
 		walker = urwid.SimpleFocusListWalker(items)
 		super().__init__(walker)
 	
-	def change_focus(self, size, position, *args):
+	# TODO args or kwargs ?
+	def change_focus(self, *args, **kwargs):
 		if self.focus:
 			self.focus.original_widget.on_focus_lost()
-		super().change_focus(size, position, *args)
+		super().change_focus(*args, **kwargs)
 	
 	"""
 	Iterates over all selectable widgets, starting with the focused one if
@@ -77,6 +78,8 @@ class OptionList(urwid.ListBox):
 				return widget, position
 
 class LayoutOptionList(urwid.Pile):	
+	signals = ['configure']
+
 	def __init__(self, options):
 		self.last_search_query = ''
 		self.option_list = OptionList(options)
@@ -100,6 +103,9 @@ class LayoutOptionList(urwid.Pile):
 			return
 		if key in ('n', 'N'):
 			self.option_list.find_next(self.last_search_query, key == 'N')
+			return
+		if key == 'c':
+			urwid.emit_signal(self, 'configure', self.option_list)
 			return
 		return key
 	
