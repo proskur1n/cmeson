@@ -1,6 +1,6 @@
 from setuptools import setup
 
-long_description = '*TODO*'
+long_description = open('README.md').read()
 
 setup(
 	name = 'cmeson',
@@ -11,6 +11,7 @@ setup(
 	long_description_content_type = 'text/markdown',
 	long_description = long_description,
 	# TODO url / download_url
+	# TODO version ?
 	packages = ['cmeson'],
 	install_requires = ['urwid', 'meson>=0.5'],
 	entry_points = {
