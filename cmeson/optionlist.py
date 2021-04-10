@@ -1,6 +1,6 @@
 import urwid
 import itertools
-from OptionEdit import OptionEdit
+from .editwidgets import OptionEdit
 
 def heading(title, div_char=u'─'):
 	line = urwid.Divider(div_char)

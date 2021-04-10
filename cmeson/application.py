@@ -3,8 +3,8 @@ import subprocess
 import json
 import getopt
 import sys
-from LayoutCommandOutput import LayoutCommandOutput
-from LayoutOptionList import LayoutOptionList
+from .command import LayoutCommandOutput
+from .optionlist import LayoutOptionList
 
 usage = """\
 cmeson [OPTIONS] builddir [sourcedir] [TRAILING]
@@ -128,9 +128,3 @@ class Application:
 		if terminal.successful():
 			self.configured = True
 		self.main_loop.widget = self.layout_option_list
-
-if __name__ == '__main__':
-	try:
-		app = Application(sys.argv)
-	except ApplicationError as e:
-		sys.exit('cmeson: ' + str(e))
