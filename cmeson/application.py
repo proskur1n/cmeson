@@ -81,19 +81,26 @@ class Application:
 			stderr=subprocess.DEVNULL,
 			stdout=subprocess.DEVNULL) == 0
 
-	# TODO unhelpful error message
 	def get_build_options(self):
-		path = self.builddir if self.configured else self.sourcedir + '/meson.build'
 		cmd = ['meson', 'introspect', '--buildoptions']
-		cmd += ['--backend', self.backend] if self.backend else []
-		cmd += [path]
+		if self.backend:
+			cmd.extend(['--backend', self.backend])
+		if self.configured:
+			cmd.append(self.builddir)
+		else:
+			cmd.append(self.sourcedir + '/meson.build')
 
 		try:
-			json_str = subprocess.check_output(cmd)
-		except subprocess.CalledProcessError:
-			msg = 'meson returned non-zero exit code\n' + ' '.join(cmd)
+			json_str = subprocess.check_output(
+				cmd,
+				stderr=subprocess.PIPE,
+				text=True)
+		except subprocess.CalledProcessError as e:
+			msg = 'could not get build options'
+			if e.stderr:
+				msg += ':\n\n' + e.stderr
 			raise ApplicationError(msg)
-		
+
 		return json.loads(json_str)
 	
 	"""
@@ -115,10 +122,12 @@ class Application:
 	def configure_meson(self, option_list):
 		cmd = ['meson', 'configure' if self.configured else 'setup']
 		cmd += self.trailing
-		cmd += ['--backend', self.backend] if self.backend else []
+		if self.backend:
+			cmd.extend(['--backend', self.backend])
 		cmd += self.get_darguments(option_list)
-		cmd += [self.builddir]
-		cmd += [] if self.configured else [self.sourcedir]
+		cmd.append(self.builddir)
+		if not self.configured:
+			cmd.append(self.sourcedir)
 		
 		layout = LayoutCommandOutput(cmd, self.main_loop)
 		urwid.connect_signal(layout, 'back', self.back_to_option_list)
