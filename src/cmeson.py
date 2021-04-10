@@ -7,16 +7,21 @@ from LayoutCommandOutput import LayoutCommandOutput
 from LayoutOptionList import LayoutOptionList
 
 usage = """\
-cmeson [OPTIONs] builddir -- [EXTRAs]
-cmeson [OPTIONs] builddir sourcedir [EXTRAs]
+cmeson [OPTIONS] builddir [sourcedir] [TRAILING]
 
-cmeson is a TUI for meson build system. EXTRAs are passed as-is to 'meson setup'
-or 'meson configure' and OPTIONs can have the following values:
+cmeson is a TUI for meson build system
 
   -h, --help           Show this message and exit
   --backend BACKEND    Select backend to query build options for. See meson
                        documentation for possible BACKEND values
+
+TRAILING options are passed as-is to 'meson setup' or 'meson configure'
 """
+
+def pop_non_argument(trailing):
+	if trailing[0].startswith('-'):
+		raise IndexError
+	return trailing.pop(0)
 
 class ApplicationError(Exception):
 	pass
@@ -42,7 +47,10 @@ class Application:
 		except getopt.GetoptError as e:
 			raise ApplicationError(e)
 		
+		self.trailing = trailing
 		self.backend = None
+		self.sourcedir = '.'
+
 		for opt, arg in optlist:
 			if opt in ('-h', '--help'):
 				print(usage)
@@ -51,19 +59,16 @@ class Application:
 				self.backend = arg
 			else:
 				assert False, 'unhandled option'
-		
+
 		try:
-			self.builddir = trailing[0]
+			self.builddir = pop_non_argument(self.trailing)
 		except IndexError:
 			raise ApplicationError('builddir not specified')
-
-		self.sourcedir = '.'
+		
 		try:
-			if trailing[1] != '--':
-				self.sourcedir = trailing[1]
-			self.trailing = trailing[2:]
+			self.sourcedir = pop_non_argument(self.trailing)
 		except IndexError:
-			self.trailing = trailing[1:]
+			pass
 
 	"""
 	A hacky way to find out if we should run 'meson setup' or 'meson configure'
@@ -76,6 +81,7 @@ class Application:
 			stderr=subprocess.DEVNULL,
 			stdout=subprocess.DEVNULL) == 0
 
+	# TODO unhelpful error message
 	def get_build_options(self):
 		path = self.builddir if self.configured else self.sourcedir + '/meson.build'
 		cmd = ['meson', 'introspect', '--buildoptions']
@@ -89,7 +95,7 @@ class Application:
 			raise ApplicationError(msg)
 		
 		return json.loads(json_str)
-
+	
 	"""
 	dargument = -D argument
 
