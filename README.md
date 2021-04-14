@@ -4,7 +4,15 @@ cmeson is a TUI for [meson](https://mesonbuild.com/) build system and offers a c
 
 # Installation
 
-TODO
+From PyPI:
+	
+	pip3 install --user cmeson
+
+From source:
+
+	git clone https://github.com/proskur1n/cmeson
+	cd cmeson
+	pip3 install --user .
 
 # Usage
 
@@ -31,23 +39,4 @@ This application is already in a fully usable state, but there are still some sm
 
 # License
 
-MIT License
-Copyright (c) 2021 Andrey Proskurin (proskur1n)
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+MIT License (see LICENSE for more information)
