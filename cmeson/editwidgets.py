@@ -1,11 +1,9 @@
 import urwid
 
-# TODO refactor a little
 class ComboEdit(urwid.SelectableIcon):
 	def __init__(self, choices, value):
-		self._choices = choices
-		self._selection = 0
 		super().__init__('')
+		self._choices = choices
 		self.set_value(value)
 	
 	def choice_index(self, value):

@@ -45,15 +45,12 @@ def group_into_sections(widgets):
 
 class OptionList(urwid.ListBox):
 	def __init__(self, options):
-		# TODO refactor
-		max_name_len = max([len(x['name']) for x in options])
-		items = [OptionEdit(max_name_len, x) for x in options]
-		items = group_into_sections(items)
-		items = [urwid.AttrMap(x, '', 'selected') for x in items]
-		walker = urwid.SimpleFocusListWalker(items)
-		super().__init__(walker)
+		max_name_len = max(len(x['name']) for x in options)
+		widgets = [OptionEdit(max_name_len, x) for x in options]
+		grouped = group_into_sections(widgets)
+		decorated = [urwid.AttrMap(x, '', 'selected') for x in grouped]
+		super().__init__(urwid.SimpleFocusListWalker(decorated))
 	
-	# TODO args or kwargs ?
 	def change_focus(self, *args, **kwargs):
 		if self.focus:
 			self.focus.original_widget.on_focus_lost()
