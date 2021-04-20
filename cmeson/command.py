@@ -1,8 +1,6 @@
 import urwid
 import os
 
-# TODO utf-8 encoding ?
-
 class SaneTerminal(urwid.Terminal):
 	def __init__(self, command, main_loop):
 		self.returncode = None

@@ -34,9 +34,12 @@ class Application:
 	def __init__(self, argv):
 		self.parse_arguments(argv)
 		self.configured = self.is_configured_project()
+
 		layout = LayoutOptionList(self.get_build_options())
 		urwid.connect_signal(layout, 'configure', self.configure_meson)
 		self.layout_option_list = layout
+
+		urwid.set_encoding('utf-8')
 		self.main_loop = urwid.MainLoop(layout, self.palette, handle_mouse=False)
 		self.main_loop.run()
 	
