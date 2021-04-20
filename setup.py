@@ -1,9 +1,13 @@
 from setuptools import setup
 import sys
 
-long_description = open('README.md').read()
+# versioning scheme: YYYY.0M.0D
+version = '2021.04.20'
 
+download_url = 'https://github.com/proskur1n/cmeson/archive/{}.tar.gz'.format(version)
+long_description = open('README.md').read()
 data_files = []
+
 if sys.platform != 'win32':
 	data_files.append(('share/man/man1', ['docs/cmeson.1']))
 
@@ -16,8 +20,8 @@ setup(
 	long_description_content_type = 'text/markdown',
 	long_description = long_description,
 	url = 'https://github.com/proskur1n/cmeson',
-	version = '1.0.0',
-	download_url = 'https://github.com/proskur1n/cmeson/archive/refs/tags/1.0.0.tar.gz',
+	version = version,
+	download_url = download_url,
 	packages = ['cmeson'],
 	install_requires = ['urwid', 'meson>=0.5'],
 	entry_points = {
