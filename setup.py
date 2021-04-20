@@ -1,6 +1,11 @@
 from setuptools import setup
+import sys
 
 long_description = open('README.md').read()
+
+data_files = []
+if sys.platform != 'win32':
+	data_files.append(('share/man/man1', ['docs/cmeson.1']))
 
 setup(
 	name = 'cmeson',
@@ -19,4 +24,5 @@ setup(
 		'console_scripts': ['cmeson=cmeson.__main__:main']
 	},
 	keywords = 'cmeson meson build system TUI',
+	data_files = data_files,
 )

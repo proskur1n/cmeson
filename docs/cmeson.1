@@ -1,0 +1,40 @@
+.TH CMESON 1 "2021-04-20"
+
+.SH NAME
+cmeson \- TUI for the meson build system
+
+.SH SYNOPSIS
+.B cmeson
+builddir
+.br
+.B cmeson
+[OPTIONS] builddir [sourcedir] [TRAILING]
+
+.SH DESCRIPTION
+.P
+.B cmeson
+is a text-based user interface for the meson build system and offers a convenient, graphical way to configure build options instead of having to memorize and type them out in the terminal. The name and functionality of this application are derived from a similar application for cmake ccmake.
+.P
+.B sourcedir
+is a directory containing
+.I meson.build
+file and
+.B builddir
+is the build directory for the project.
+.B sourcedir
+is only needed for projects for which
+.I meson setup
+has not been run yet and defaults to the current working directory if not specified.
+.P
+If any trailing options are given, they are passed as-is to meson and are not interpreted by this application. Normally you do not need to specify any trailing options, as most of them can be configured directly through TUI.
+
+.SH OPTIONS
+.TP
+.BR \-h ", " \-\-help
+Show help message and exit
+.TP
+.BR \-\-backend " BACKEND"
+Select backend to query build options for. If you specify a backend using this option, you must not change the backend in TUI. See the meson documentation for a complete list of supported backends
+
+.SH AUTHORS
+Andrey Proskurin (proskur1n) : git.proskur.in

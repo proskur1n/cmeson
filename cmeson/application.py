@@ -9,14 +9,13 @@ from .optionlist import LayoutOptionList
 usage = """\
 cmeson [OPTIONS] builddir [sourcedir] [TRAILING]
 
-cmeson is a TUI for meson build system
+cmeson is a TUI for the meson build system
 
   -h, --help           Show this message and exit
   --backend BACKEND    Select backend to query build options for. See meson
                        documentation for possible BACKEND values
 
-TRAILING options are passed as-is to 'meson setup' or 'meson configure'
-"""
+TRAILING options are passed as-is to 'meson setup' or 'meson configure'"""
 
 def pop_non_argument(trailing):
 	if trailing[0].startswith('-'):
