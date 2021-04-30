@@ -6,6 +6,7 @@ import sys
 import os
 from .command import LayoutCommandOutput
 from .optionlist import LayoutOptionList
+from .screen import Screen
 
 usage = """\
 cmeson [OPTIONS] builddir [sourcedir] [TRAILING]
@@ -67,7 +68,11 @@ class Application:
 		self.layout_option_list = layout
 
 		urwid.set_encoding('utf-8')
-		self.main_loop = urwid.MainLoop(layout, self.palette, handle_mouse=False)
+		self.main_loop = urwid.MainLoop(
+			layout,
+			palette=self.palette,
+			screen=Screen(),
+			handle_mouse=False)
 		self.main_loop.run()
 	
 	def parse_arguments(self, argv):

@@ -1,7 +1,7 @@
 import urwid
 import os
 
-class SaneTerminal(urwid.Terminal):
+class CommandViewer(urwid.Terminal):
 	def __init__(self, command, main_loop):
 		self.returncode = None
 		super().__init__(command, main_loop=main_loop)
@@ -34,6 +34,18 @@ class SaneTerminal(urwid.Terminal):
 			self.height = height
 		return super().render(size, focus)
 	
+	"""
+	Allows the main application to respond to ctrl-z and other tty events
+	that are unmapped by default urwid.Terminal.change_focus() call.
+	"""
+	def change_focus(self, has_focus):
+		if self.terminated:
+			return
+		self.has_focus = has_focus
+		if self.term is not None:
+			self.term.has_focus = has_focus
+			self.term.set_term_cursor()
+
 	def keypress(self, size, key):
 		if key in ('up', 'down'):
 			if self.term:
@@ -51,7 +63,7 @@ class LayoutCommandOutput(urwid.Pile):
 
 	def __init__(self, command, main_loop):
 		self.main_loop = main_loop
-		self.term = SaneTerminal(command, main_loop)
+		self.term = CommandViewer(command, main_loop)
 		urwid.connect_signal(self.term, 'closed', self.on_closed)
 		self.footer = urwid.Text('')
 		super().__init__([
@@ -77,3 +89,4 @@ class LayoutCommandOutput(urwid.Pile):
 			return
 		if self.term.successful() and key == 'q':
 			raise urwid.ExitMainLoop()
+		return key
