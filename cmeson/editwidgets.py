@@ -83,7 +83,7 @@ class OptionEdit(urwid.Columns):
 			(max_name_len, urwid.Text(self.name)),
 			self.edit_widget
 		]
-		super().__init__(items, dividechars=8)
+		super().__init__(items, dividechars=10)
 	
 	def get_value(self):
 		return self.edit_widget.get_value()
