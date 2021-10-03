@@ -142,5 +142,5 @@ class LayoutOptionList(urwid.Pile):
 		text = ''
 		if focus:
 			widget = focus.original_widget
-			text = widget.description
+			text = '{} <{}>'.format(widget.description, widget.type)
 		self.description.set_text(text)

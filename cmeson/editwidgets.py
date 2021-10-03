@@ -75,6 +75,7 @@ def get_edit_widget(option):
 class OptionEdit(urwid.Columns):
 	def __init__(self, max_name_len, option):
 		self.name = option['name']
+		self.type = option['type']
 		self.section = option['section']
 		self.description = option['description']
 		self.edit_widget = get_edit_widget(option)
