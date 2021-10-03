@@ -1,5 +1,6 @@
 import urwid
 import itertools
+import re
 from .editwidgets import OptionEdit
 
 def heading(title, div_char=u'─'):
@@ -74,7 +75,7 @@ class OptionList(urwid.ListBox):
 	def find_next(self, query, reverse=False):
 		_, current = self.body.get_focus()
 		for widget, position in self.build_options(reverse):
-			if widget.name.find(query) >= 0 and position != current:
+			if re.search(query, widget.name, re.IGNORECASE) and position != current:
 				self.set_focus(position)
 				return widget, position
 
