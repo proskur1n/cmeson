@@ -2,7 +2,7 @@ from setuptools import setup
 import sys
 
 # versioning scheme: YYYY.0M.0D
-version = '2021.04.30'
+version = '2021.10.03'
 
 download_url = 'https://github.com/proskur1n/cmeson/archive/{}.tar.gz'.format(version)
 long_description = open('README.md').read()
