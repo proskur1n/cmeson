@@ -52,6 +52,16 @@ class OptionList(urwid.ListBox):
 		decorated = [urwid.AttrMap(x, '', 'selected') for x in grouped]
 		super().__init__(urwid.SimpleFocusListWalker(decorated))
 	
+	def keypress(self, size, key):
+		if not super().keypress(size, key):
+			return
+		if key == 'j':
+			super().keypress(size, 'down')
+		elif key == 'k':
+			super().keypress(size, 'up')
+		else:
+			return key
+	
 	def change_focus(self, *args, **kwargs):
 		if self.focus:
 			self.focus.original_widget.on_focus_lost()

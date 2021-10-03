@@ -47,9 +47,9 @@ class CommandViewer(urwid.Terminal):
 			self.term.set_term_cursor()
 
 	def keypress(self, size, key):
-		if key in ('up', 'down'):
+		if key in ('up', 'down', 'k', 'j'):
 			if self.term:
-				self.term.scroll_buffer(key == 'up', lines=1)
+				self.term.scroll_buffer(key in ('up', 'k'), lines=1)
 			return
 		return super().keypress(size, key)
 	
