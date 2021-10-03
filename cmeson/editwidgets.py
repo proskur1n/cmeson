@@ -20,9 +20,9 @@ class ComboEdit(urwid.SelectableIcon):
 		self.set_text(str(value))
 	
 	def keypress(self, size, key):
-		if key != 'enter':
+		if key not in ('enter', 'backspace'):
 			return key
-		self._selection += 1
+		self._selection += 1 if key == 'enter' else -1
 		self._selection %= len(self._choices)
 		self.set_value(self._choices[self._selection])
 
