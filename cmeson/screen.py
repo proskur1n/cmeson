@@ -2,12 +2,14 @@ import urwid
 import os
 from signal import SIGCONT, SIGTSTP, SIG_DFL
 
-"""
-By default, urwid.raw_display.Screen does not restore the alternative screen on
-ctrl-z (SIGTSTP) and simply leaves the terminal window in a mess. This wrapper
-can be removed after urwid fixes this problem.
-"""
 class Screen(urwid.raw_display.Screen):
+	"""
+	By default, urwid.raw_display.Screen does not restore the
+	alternative screen on ctrl-z (SIGTSTP) and simply leaves the
+	terminal window in a mess. This wrapper can be removed after urwid
+	fixes this problem.
+	"""
+
 	def _sigtstp_handler(self, signum, frame=None):
 		self.stop() # calls signal_restore
 		self.signal_handler_setter(SIGCONT, self._sigcont_handler)

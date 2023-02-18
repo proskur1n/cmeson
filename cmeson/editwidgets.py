@@ -5,20 +5,20 @@ class ComboEdit(urwid.SelectableIcon):
 		super().__init__('')
 		self._choices = choices
 		self.set_value(value)
-	
+
 	def choice_index(self, value):
 		idx = self._choices.index(value)
 		if idx < 0:
 			raise ValueError('choices do not contain "{}"'.format(value))
 		return idx
-	
+
 	def get_value(self):
 		return self._choices[self._selection]
-	
+
 	def set_value(self, value):
 		self._selection = self.choice_index(value)
 		self.set_text(str(value))
-	
+
 	def keypress(self, size, key):
 		if key not in ('enter', 'backspace'):
 			return key
@@ -30,13 +30,13 @@ class StringEdit(urwid.Edit):
 	def __init__(self, value):
 		self.editing = False
 		super().__init__(edit_text=str(value))
-	
+
 	def get_value(self):
 		return self.get_edit_text()
-	
+
 	def set_value(self, value):
 		self.set_edit_text(str(value))
-	
+
 	def keypress(self, size, key):
 		if key == 'enter':
 			self.editing = not self.editing
@@ -85,16 +85,16 @@ class OptionEdit(urwid.Columns):
 			self.edit_widget
 		]
 		super().__init__(items, dividechars=10)
-	
+
 	def get_value(self):
 		return self.edit_widget.get_value()
-	
+
 	def set_value(self, value):
 		self.edit_widget.set_value(value)
-	
+
 	def changed(self):
 		return self.get_value() != self.original_value
-	
+
 	def keypress(self, size, key):
 		if not self.edit_widget.keypress(size, key):
 			return
@@ -102,7 +102,7 @@ class OptionEdit(urwid.Columns):
 			self.set_value(self.original_value)
 		else:
 			return key
-	
+
 	def on_focus_lost(self):
 		if hasattr(self.edit_widget, 'editing'):
 			self.edit_widget.editing = False

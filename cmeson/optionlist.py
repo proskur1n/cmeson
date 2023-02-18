@@ -51,7 +51,7 @@ class OptionList(urwid.ListBox):
 		grouped = group_into_sections(widgets)
 		decorated = [urwid.AttrMap(x, '', 'selected') for x in grouped]
 		super().__init__(urwid.SimpleFocusListWalker(decorated))
-	
+
 	def keypress(self, size, key):
 		if not super().keypress(size, key):
 			return
@@ -61,17 +61,17 @@ class OptionList(urwid.ListBox):
 			super().keypress(size, 'up')
 		else:
 			return key
-	
+
 	def change_focus(self, *args, **kwargs):
 		if self.focus:
 			self.focus.original_widget.on_focus_lost()
 		super().change_focus(*args, **kwargs)
-	
-	"""
-	Iterates over all selectable widgets, starting with the focused one if
-	`reverse == False` and the previous widget otherwise
-	"""
+
 	def build_options(self, reverse=False):
+		"""
+		Iterates over all selectable widgets, starting with the focused
+		one if `reverse == False` and the previous widget otherwise.
+		"""
 		if len(self.body) == 0:
 			return
 		focus = self.focus_position or 0
@@ -81,7 +81,7 @@ class OptionList(urwid.ListBox):
 			widget = self.body[index].original_widget
 			if widget.selectable():
 				yield widget, index
-	
+
 	def find_next(self, query, reverse=False):
 		_, current = self.body.get_focus()
 		for widget, position in self.build_options(reverse):
@@ -89,7 +89,7 @@ class OptionList(urwid.ListBox):
 				self.set_focus(position)
 				return widget, position
 
-class LayoutOptionList(urwid.Pile):	
+class LayoutOptionList(urwid.Pile):
 	signals = ['configure']
 
 	def __init__(self, options):
@@ -104,7 +104,7 @@ class LayoutOptionList(urwid.Pile):
 			(urwid.PACK, urwid.AttrMap(self.description, 'description')),
 			(urwid.PACK, self.footer),
 		])
-	
+
 	def keypress(self, size, key):
 		if not super().keypress(size, key):
 			return
@@ -120,23 +120,23 @@ class LayoutOptionList(urwid.Pile):
 			urwid.emit_signal(self, 'configure', self.option_list)
 			return
 		return key
-	
+
 	def open_search_field(self):
 		sf = SearchField('search: ')
 		urwid.connect_signal(sf, 'cancel', self.close_search_field)
 		urwid.connect_signal(sf, 'search', self.perform_search)
 		self.footer.original_widget = sf
 		self.focus_position = len(self.contents) - 1
-	
+
 	def close_search_field(self):
 		self.footer.original_widget = option_list_footer()
 		self.focus_position = 0
-	
+
 	def perform_search(self, query):
 		self.close_search_field()
 		self.option_list.find_next(query)
 		self.last_search_query = query
-	
+
 	def update_description(self):
 		focus = self.option_list.focus
 		text = ''

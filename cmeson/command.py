@@ -6,11 +6,11 @@ class CommandViewer(urwid.Terminal):
 		self.returncode = None
 		super().__init__(command, main_loop=main_loop)
 
-	"""
-	urwid.Terminal does not support querying the return code of a command. This
-	wrapper stores the return code as `self.returncode`
-	"""
 	def terminate(self):
+		"""
+		urwid.Terminal does not support querying the return code of a
+		command. This wrapper stores the return code as `self.returncode`.
+		"""
 		if self.terminated:
 			return
 		self.terminated = True
@@ -20,12 +20,12 @@ class CommandViewer(urwid.Terminal):
 			_, status = os.waitpid(self.pid, 0)
 			self.returncode = status >> 8
 			os.close(self.master)
-	
-	"""
-	Resizing urwid.Terminal results in an exception if the running command has
-	terminated. This wrapper fixes this behavior.
-	"""
+
 	def render(self, size, focus=False):
+		"""
+		Resizing urwid.Terminal results in an exception if the running
+		command has terminated. This wrapper fixes this behavior.
+		"""
 		width, height = size
 		resized = width != self.width or height != self.height
 		if self.terminated and resized:
@@ -33,12 +33,13 @@ class CommandViewer(urwid.Terminal):
 			self.width = width
 			self.height = height
 		return super().render(size, focus)
-	
-	"""
-	Allows the main application to respond to ctrl-z and other tty events
-	that are unmapped by default urwid.Terminal.change_focus() call.
-	"""
+
 	def change_focus(self, has_focus):
+		"""
+		Allows the main application to respond to ctrl-z and other tty
+		events that are unmapped by the default `urwid.Terminal.change_focus`
+		call.
+		"""
 		if self.terminated:
 			return
 		self.has_focus = has_focus
@@ -52,7 +53,7 @@ class CommandViewer(urwid.Terminal):
 				self.term.scroll_buffer(key in ('up', 'k'), lines=1)
 			return
 		return super().keypress(size, key)
-	
+
 	def successful(self):
 		if not self.terminated:
 			raise ValueError('command not yet terminated')
@@ -71,14 +72,14 @@ class LayoutCommandOutput(urwid.Pile):
 			(urwid.PACK, urwid.Divider()),
 			(urwid.PACK, self.footer),
 		])
-	
+
 	def on_closed(self, term):
 		if term.successful():
 			items = ['[q] quit', '[b] back']
 		else:
 			items = ['[b] back']
 		self.footer.set_text('   '.join(items))
-	
+
 	def keypress(self, size, key):
 		if not super().keypress(size, key):
 			return

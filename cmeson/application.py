@@ -24,24 +24,24 @@ def pop_non_argument(trailing):
 		raise IndexError
 	return trailing.pop(0)
 
-"""
-A hacky way to find out if we should run 'meson setup' or 'meson configure'
-when configuring the project
-"""
 def is_configured_project(builddir):
+	"""
+	A hacky way to find out if we should run 'meson setup' or
+	'meson configure' when configuring the project.
+	"""
 	cmd = ['meson', 'introspect', '--projectinfo', builddir]
 	return subprocess.call(
 		cmd,
 		stderr=subprocess.DEVNULL,
 		stdout=subprocess.DEVNULL) == 0
 
-"""
-dargument = -D argument
-
-Returns list of darguments ['-Da=b', '-Dc=d', ...] for build options that
-have changed and need to be reconfigured
-"""
 def get_darguments(option_list):
+	"""
+	dargument = -D argument
+
+	Returns a list of darguments ['-Da=b', '-Dc=d', ...] for build
+	options that have changed and need to be reconfigured.
+	"""
 	widgets = map(lambda x: x[0], option_list.build_options())
 	changed = filter(lambda x: x.changed(), widgets)
 	dargs = []
@@ -74,13 +74,13 @@ class Application:
 			screen=Screen(),
 			handle_mouse=False)
 		self.main_loop.run()
-	
+
 	def parse_arguments(self, argv):
 		try:
 			optlist, trailing = getopt.getopt(argv[1:], 'h', ['help', 'backend='])
 		except getopt.GetoptError as e:
 			raise ApplicationError(e)
-		
+
 		self.trailing = trailing
 		self.backend = None
 		self.sourcedir = '.'
@@ -98,20 +98,20 @@ class Application:
 			self.builddir = pop_non_argument(self.trailing)
 		except IndexError:
 			raise ApplicationError('builddir not specified')
-		
+
 		try:
 			self.sourcedir = pop_non_argument(self.trailing)
 		except IndexError:
 			pass
 		else:
 			self.get_meson_build_path()
-		
+
 		try:
 			if os.path.samefile(self.builddir, self.sourcedir):
 				raise ApplicationError('builddir equals sourcedir')
 		except FileNotFoundError:
 			pass
-	
+
 	def get_meson_build_path(self):
 		path = os.path.join(self.sourcedir, 'meson.build')
 		if not os.path.isfile(path):
@@ -139,7 +139,7 @@ class Application:
 			raise ApplicationError(msg)
 
 		return json.loads(json_str)
-	
+
 	def configure_meson(self, option_list):
 		cmd = ['meson', 'configure' if self.configured else 'setup']
 		cmd += self.trailing
@@ -149,11 +149,11 @@ class Application:
 		cmd.append(self.builddir)
 		if not self.configured:
 			cmd.append(self.sourcedir)
-		
+
 		layout = LayoutCommandOutput(cmd, self.main_loop)
 		urwid.connect_signal(layout, 'back', self.back_to_option_list)
 		self.main_loop.widget = layout
-	
+
 	def back_to_option_list(self, terminal):
 		if terminal.successful():
 			self.configured = True
